@@ -50,6 +50,13 @@ int main(int argc,char **argv){
 
         process_args(argc, argv);
 
+        if(size != n_send_process + m_recv_process){
+            if(me == 0) 
+                printf("ERROR : number of process must be n+m\n");
+            MPI_Finalize();
+            return 0;
+        }
+
         int i_am_sender = (me < n_send_process);
 
         buffer = (char*)malloc(msg_size);
@@ -89,7 +96,7 @@ int main(int argc,char **argv){
 
            /* Get result. */
            total_time = MPI_Wtime() - start;
-           printf("%d -> %lf\n",me, (double)msg_size*window_size*iter_num*m_recv_process*n_send_process/total_time);
+           printf("%d -> %lf\n",me, (double)msg_size*window_size*iter_num*m_recv_process/total_time);
 
         }
         else{
