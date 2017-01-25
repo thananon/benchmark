@@ -1,4 +1,4 @@
-CFLAGS = 
+CFLAGS = -g
 MPICC = mpicc
 
 all: msgrate_process.c
