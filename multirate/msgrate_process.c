@@ -7,6 +7,7 @@ int warmup_num = 10;
 int window_size = 256;
 int msg_size = 1024;
 int iter_num = 100;
+int want_multithread = 1;
 int me;
 int size;
 
@@ -15,10 +16,23 @@ int n_send_process, m_recv_process;
 
 char *buffer;
 
+void preprocess_args(int argc, char **argv){
+
+    /* Copied this part from artem's benchmark. He said usually
+     * we can't access argv before we call MPI_Init but by doing this,
+     * it works. I dont know anything about this but it does work. */
+    int i;
+    for(i=0;i<argc;i++){
+        if(!strcmp(argv[i], "-Dthrds"))
+           want_multithread = 0;
+    }
+
+}
+
 void process_args(int argc, char **argv){
 
     int c;
-    while((c = getopt(argc,argv, "n:m:s:i:w:")) != -1){
+    while((c = getopt(argc,argv, "n:m:s:i:w:D:")) != -1){
         switch (c){
             case 'n':
                 n_send_process = atoi(optarg);
@@ -35,6 +49,11 @@ void process_args(int argc, char **argv){
             case 'w':
                 window_size = atoi(optarg);
                 break;
+            case 'D':
+                if(!strcmp("thrds",optarg)){
+                    want_multithread = 0;
+                }
+                break;
             default:
                 c = -1;
                 exit(-1);
@@ -44,14 +63,31 @@ void process_args(int argc, char **argv){
 
 int main(int argc,char **argv){
 
-        MPI_Init(&argc, &argv);
+        /* Process the arguments. */
+        preprocess_args(argc, argv);
+        int thread_level;
+
+        /* Initialize MPI according to the user's desire.*/
+        if(want_multithread){
+            MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &thread_level);
+            if(thread_level != MPI_THREAD_MULTIPLE){
+                printf("MPI_THREAD_MULTIPLE requested but MPI implementation cannot provide.\n");
+                MPI_Finalize();
+                return 0;
+            }
+
+        }
+        else
+            MPI_Init(&argc, &argv);
+
+
         MPI_Comm_size(MPI_COMM_WORLD, &size);
         MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-        process_args(argc, argv);
+        process_args(argc,argv);
 
         if(size != n_send_process + m_recv_process){
-            if(me == 0) 
+            if(me == 0)
                 printf("ERROR : number of process must be n+m\n");
             MPI_Finalize();
             return 0;
@@ -83,7 +119,7 @@ int main(int argc,char **argv){
            /* Sync everyone, we are starting.*/
            /* We are posting bunch of sends to each receiver. */
            MPI_Barrier(MPI_COMM_WORLD);
-           start = MPI_Wtime(); 
+           start = MPI_Wtime();
 
            for(i=0;i<iter_num;i++){
                 for(k=0; k < m_recv_process; k++){
