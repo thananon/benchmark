@@ -177,6 +177,12 @@ void *thread_work(void *info){
                     }
                 }
                 MPI_Waitall(total_request, request, status);
+
+                if(tid==0){
+                    for(i=0;i<m_recv_process;i++){
+                        MPI_Recv(buffer, 1, MPI_BYTE, i+n_send_process, i+n_send_process, MPI_COMM_WORLD, &status[0]);
+                     }
+                }
             }
         }
         else{
@@ -202,6 +208,13 @@ void *thread_work(void *info){
                     }
                 }
                 MPI_Waitall(total_request, request, status);
+
+                /* We have to send something back to tell that we are done recving. */
+                if(tid ==0){
+                    for(i=0;i<n_send_process;i++){
+                        MPI_Send(buffer, 1, MPI_BYTE, i, me, MPI_COMM_WORLD);
+                    }
+                }
             }
         }
 
