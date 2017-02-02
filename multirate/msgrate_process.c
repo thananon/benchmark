@@ -14,13 +14,16 @@ int size;
 int n_send_process, m_recv_process;
 int x_send_thread=1,y_recv_thread=1;
 int i_am_sender;
+int num_comm;
 char *buffer;
+double g_start;
 
 static pthread_barrier_t barrier;
 
 void Test_Singlethreaded(void);
 void Test_Multithreaded(void);
 
+MPI_Comm *comm;
 
 typedef struct{
     int id;
@@ -125,16 +128,9 @@ int main(int argc,char **argv){
 
         i_am_sender = (me < n_send_process);
 
+        Test_Multithreaded();
 
-
-        if(thread_level != MPI_THREAD_MULTIPLE){
-            Test_Singlethreaded();
-        }
-        else {
-            Test_Multithreaded();
-        }
-
-       MPI_Finalize();
+        MPI_Finalize();
 
 }
 
@@ -164,15 +160,17 @@ void *thread_work(void *info){
                 /* Basically we start taking time after some number of runs. */
                 if(iteration == warmup_num){
                     pthread_barrier_wait(&barrier);
-                    start = MPI_Wtime();
+                    if(tid==0)
+                        g_start = MPI_Wtime();
                 }
 
                 /* post isend to each reciever thread on each reciever. */
                 for(i=0;i<m_recv_process;i++){
                     for(j=0;j<y_recv_thread;j++){
                         int offset = (i*y_recv_thread + j) * window_size;
+                        int comm_offset = (me*x_send_thread*y_recv_thread) + (tid * y_recv_thread) + j;
                         for(k=0;k<window_size;k++){
-                            MPI_Isend(buffer, msg_size, MPI_BYTE, i+n_send_process, j, MPI_COMM_WORLD , &request[offset+k]);
+                            MPI_Isend(buffer, msg_size, MPI_BYTE, i+n_send_process, j, comm[comm_offset] , &request[offset+k]);
                         }
                     }
                 }
@@ -202,8 +200,9 @@ void *thread_work(void *info){
                 for(i=0;i<n_send_process;i++){
                     for(j=0;j<x_send_thread;j++){
                         int offset = (i*x_send_thread + j) * window_size;
+                        int comm_offset = (i*x_send_thread*y_recv_thread) + (j * y_recv_thread) + tid;
                         for(k=0;k<window_size;k++){
-                            MPI_Irecv(buffer, msg_size, MPI_BYTE, i, tid, MPI_COMM_WORLD , &request[offset+k]);
+                            MPI_Irecv(buffer, msg_size, MPI_BYTE, i, tid, comm[comm_offset] , &request[offset+k]);
                         }
                     }
                 }
@@ -218,8 +217,6 @@ void *thread_work(void *info){
             }
         }
 
-        printf("[%d:%d] : time %lf secs\n", me,tid, MPI_Wtime() - start);
-
 }
 
 void Test_Multithreaded(void){
@@ -228,6 +225,8 @@ void Test_Multithreaded(void){
         thread_info *t_info;
         int i;
         int num_threads;
+
+        num_comm = n_send_process * x_send_thread * m_recv_process * y_recv_thread;
         /* Spawn the threads */
         if(i_am_sender)
             num_threads = x_send_thread;
@@ -237,6 +236,11 @@ void Test_Multithreaded(void){
         id = (pthread_t*) malloc(sizeof(pthread_t) * num_threads);
         t_info = (thread_info*) malloc (sizeof(thread_info) * num_threads);
         pthread_barrier_init(&barrier, NULL, num_threads);
+        comm = (MPI_Comm*) malloc(sizeof(MPI_Comm) * num_comm);
+
+        for(i=0;i<num_comm;i++){
+            MPI_Comm_dup(MPI_COMM_WORLD, &comm[i]);
+        }
 
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -250,6 +254,13 @@ void Test_Multithreaded(void){
 
         for(i=0;i<num_threads;i++){
             pthread_join(id[i], NULL);
+        }
+
+        /* output message rate */
+        if(me == 0){
+            printf("%d\t%d\t%d\t%d\t\t%lf\n",n_send_process, x_send_thread
+                                            , m_recv_process, y_recv_thread
+                                            ,(double)(num_comm * msg_size*window_size*iter_num/(MPI_Wtime() - g_start)));
         }
         MPI_Barrier(MPI_COMM_WORLD);
         pthread_barrier_destroy(&barrier);

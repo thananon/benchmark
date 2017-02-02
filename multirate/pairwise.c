@@ -99,8 +99,6 @@ int main(int argc,char **argv){
                 MPI_Finalize();
                 return 0;
             }
-            printf("=================# MPI_THREAD_MULTIPLE mode #===================\n");
-
         }
         else
             MPI_Init(&argc, &argv);
@@ -109,6 +107,9 @@ int main(int argc,char **argv){
         MPI_Comm_size(MPI_COMM_WORLD, &size);
         MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
+        if(me == 0 && thread_level == MPI_THREAD_MULTIPLE){
+            printf("=================# MPI_THREAD_MULTIPLE mode #===================\n");
+        }
 #ifdef GDB
         printf("Rank %d : PID %d\n",me,getpid());
         printf("Waiting for gdb attach.\n");
@@ -230,7 +231,7 @@ int Test_Multithreaded(void){
         else
             num_threads = y_recv_thread;
 
-        if(pair_mode){
+        if(pair_mode || 1){
             if( x_send_thread != y_recv_thread ){
                 printf("number of send and recv threads should be the same.\n");
                 return 0;
@@ -263,7 +264,9 @@ int Test_Multithreaded(void){
             pthread_join(id[i], NULL);
         }
         if(me == 0)
-        printf("rate %lf msg/s\n", (double)(msg_size*iter_num*window_size*num_threads/( MPI_Wtime() - g_start)));
+            printf("%d\t%d\t%d\t%d%lf\tP\n",n_send_process, x_send_thread,
+                                            m_recv_process, y_recv_thread,
+                                            (double)(msg_size*iter_num*window_size*num_threads/( MPI_Wtime() - g_start)));
         MPI_Barrier(MPI_COMM_WORLD);
         pthread_barrier_destroy(&barrier);
         return 0;
