@@ -256,13 +256,13 @@ void Test_Multithreaded(void){
             pthread_join(id[i], NULL);
         }
 
+        MPI_Barrier(MPI_COMM_WORLD);
         /* output message rate */
         if(me == 0){
             printf("%d\t%d\t%d\t%d\t\t%lf\n",n_send_process, x_send_thread
                                             , m_recv_process, y_recv_thread
-                                            ,(double)(num_comm * msg_size*window_size*iter_num/(MPI_Wtime() - g_start)));
+                                            ,(double)(num_comm *window_size*iter_num/(MPI_Wtime() - g_start)));
         }
-        MPI_Barrier(MPI_COMM_WORLD);
         pthread_barrier_destroy(&barrier);
 }
 

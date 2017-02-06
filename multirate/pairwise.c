@@ -107,9 +107,9 @@ int main(int argc,char **argv){
         MPI_Comm_size(MPI_COMM_WORLD, &size);
         MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-        if(me == 0 && thread_level == MPI_THREAD_MULTIPLE){
-            printf("=================# MPI_THREAD_MULTIPLE mode #===================\n");
-        }
+        /** if(me == 0 && thread_level == MPI_THREAD_MULTIPLE){ */
+        /**     printf("=================# MPI_THREAD_MULTIPLE mode #===================\n"); */
+        /** } */
 #ifdef GDB
         printf("Rank %d : PID %d\n",me,getpid());
         printf("Waiting for gdb attach.\n");
@@ -263,11 +263,13 @@ int Test_Multithreaded(void){
         for(i=0;i<num_threads;i++){
             pthread_join(id[i], NULL);
         }
-        if(me == 0)
-            printf("%d\t%d\t%d\t%d%lf\tP\n",n_send_process, x_send_thread,
-                                            m_recv_process, y_recv_thread,
-                                            (double)(msg_size*iter_num*window_size*num_threads/( MPI_Wtime() - g_start)));
+
         MPI_Barrier(MPI_COMM_WORLD);
+
+        if(me == 0)
+            printf("%d\t%d\t%d\t%d\t\t%lf\tP\n",n_send_process, x_send_thread,
+                                            m_recv_process, y_recv_thread,
+                                            (double)((size/2)*iter_num*window_size*num_threads/( MPI_Wtime() - g_start)));
         pthread_barrier_destroy(&barrier);
         return 0;
 }
