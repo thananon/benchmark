@@ -14,8 +14,8 @@ def run_command(command):
 
 size = 1024;
 loop = 1000;
-host = "arc78"
-filename = "ib_fix_"+host+"_ib_"+str(size)+"byte_"+str(loop)
+host = "arc"
+filename = "master_"+host+"_ib_"+str(size)+"byte_"+str(loop)
 output = " | tee -a " + filename
 
 #  for i in range(1,11):
@@ -50,7 +50,7 @@ output = " | tee -a " + filename
 #      os.system("echo \"\" >> "+filename)
 
 for i in range(1,11):
-    for iteration in range(1,3):
-        os.system("mpirun -np 2 -host arc02,arc03 -mca btl openib,self --map-by node --bind-to core ./pairwise -s "+str(size)+"  -x "+ str(i) +" -y " +str(i) + " -n 1 -m 1 -i "+str(loop)+ " "+ output)
+    for iteration in range(1,5):
+        os.system("mpirun -np 2 --rankfile ./hostfile -mca btl openib,self --bind-to core ./pairwise -s "+str(size)+"  -x "+ str(i) +" -y " +str(i) + " -n 1 -m 1 -i "+str(loop)+ " "+ output)
     print "\n"
     os.system("echo \"\" >> "+filename)
