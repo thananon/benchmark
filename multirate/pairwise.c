@@ -11,17 +11,29 @@ int iter_num = 1;
 int want_multithread = 1;
 int me;
 int size;
-int n_send_process, m_recv_process;
+int n_send_process = 1, m_recv_process = 1;
 int x_send_thread=1,y_recv_thread=1;
 int i_am_sender;
 int pair_mode = 0;
 char *buffer;
-
 double g_start,g_end;
 
 static pthread_barrier_t barrier;
 
-void Test_Singlethreaded(void);
+void displayHelp(){
+
+    printf("Pairwise performs ping/ping test between pairs. Which can be processes or threads and measure aggregated injection rate.\n");
+    printf("In case of multiple process, please map the process by node. ie: even ranks are sender, odd ranks are receivers.\n");
+    printf("Usage : ./pairwise [options]\n");
+    printf("-s [n]       : message size of n bytes to send in the test.\n");
+    printf("-p [n]       : number of process pairs in the test.\n");
+    printf("-t [n]       : number of thread pairs in the test. \n");
+    printf("-w [n]       : window size, number of posted message per iteration.\n");
+    printf("-i [n]       : number of iterations.\n");
+    printf("-h           : display this help message.\n");
+    exit(0);
+}
+
 int Test_Multithreaded(void);
 
 
@@ -47,14 +59,8 @@ void preprocess_args(int argc, char **argv){
 void process_args(int argc, char **argv){
 
     int c;
-    while((c = getopt(argc,argv, "n:m:s:i:w:D:x:y:p")) != -1){
+    while((c = getopt(argc,argv, "s:i:w:D:t:h")) != -1){
         switch (c){
-            case 'n':
-                n_send_process = atoi(optarg);
-                break;
-            case 'm':
-                m_recv_process = atoi(optarg);
-                break;
             case 's':
                 msg_size = atoi(optarg);
                 break;
@@ -67,16 +73,16 @@ void process_args(int argc, char **argv){
             case 'D':
                 if(!strcmp("thrds",optarg)){
                     want_multithread = 0;
+                    x_send_thread = 1;
+                    y_recv_thread = 1;
                 }
                 break;
-            case 'x':
+            case 't':
+                y_recv_thread = atoi(optarg);
                 x_send_thread = atoi(optarg);
                 break;
-            case 'y':
-                y_recv_thread = atoi(optarg);
-                break;
-            case 'p':
-                pair_mode = 1;
+            case 'h':
+                displayHelp();
                 break;
             default:
                 c = -1;
@@ -107,6 +113,15 @@ int main(int argc,char **argv){
         MPI_Comm_size(MPI_COMM_WORLD, &size);
         MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
+        if(size %2 != 0){
+            if(me ==0) printf("Please use even number of processes.\n");
+            MPI_Finalize();
+            return 0;
+        }
+
+        n_send_process = m_recv_process = size/2;
+        i_am_sender = 1 - (me % 2);
+
         /** if(me == 0 && thread_level == MPI_THREAD_MULTIPLE){ */
         /**     printf("=================# MPI_THREAD_MULTIPLE mode #===================\n"); */
         /** } */
@@ -125,14 +140,7 @@ int main(int argc,char **argv){
         /* Process the arguments. */
         process_args(argc,argv);
 
-        if(size != n_send_process + m_recv_process){
-            if(me == 0)
-                printf("ERROR : number of process must be n+m\n");
-            MPI_Finalize();
-            return 0;
-        }
-
-        i_am_sender = (me < n_send_process);
+        /* Even processes are senders, odd processes are recver. */
 
 
 
@@ -179,12 +187,7 @@ void *thread_work(void *info){
                     MPI_Isend(buffer, msg_size, MPI_BYTE, t_info->my_pair, 0, t_info->comm , &request[k]);
                 }
                 MPI_Waitall(total_request, request, status);
-
-                if(tid==0){
-                    for(i=0;i<y_recv_thread;i++){
-                        MPI_Recv(buffer, 1, MPI_BYTE, t_info->my_pair, i, MPI_COMM_WORLD, &status[0]);
-                     }
-                }
+                MPI_Recv(buffer, 1, MPI_BYTE, t_info->my_pair, 1, MPI_COMM_WORLD, &status[0]);
             }
         }
         else{
@@ -197,7 +200,6 @@ void *thread_work(void *info){
                 /* Basically we start taking time after some number of runs. */
                 if(iteration == warmup_num){
                     pthread_barrier_wait(&barrier);
-                    //start = MPI_Wtime();
                 }
 
                 /* post irecv to each reciever thread on each reciever. */
@@ -205,15 +207,8 @@ void *thread_work(void *info){
                         MPI_Irecv(buffer, msg_size, MPI_BYTE, t_info->my_pair, 0, t_info->comm , &request[k]);
                 }
                 MPI_Waitall(total_request, request, status);
+                MPI_Send(buffer, 1, MPI_BYTE, t_info->my_pair, 1, MPI_COMM_WORLD);
 
-                MPI_Send(buffer, 1, MPI_BYTE, t_info->my_pair, tid, MPI_COMM_WORLD);
-
-                /* We have to send something back to tell that we are done recving. */
-                /** if(tid ==0){ */
-                /**     for(i=0;i<n_send_process;i++){ */
-                /**         MPI_Send(buffer, 1, MPI_BYTE, i, me, t_info->comm); */
-                /**     } */
-                /** } */
             }
         }
 
@@ -247,10 +242,10 @@ int Test_Multithreaded(void){
 
         for(i=0;i<num_threads;i++){
             t_info[i].id = i;
-            t_info[i].my_pair = me-n_send_process;
+            t_info[i].my_pair = me-1;
             MPI_Comm_dup(MPI_COMM_WORLD, &t_info[i].comm);
             if(i_am_sender)
-                t_info[i].my_pair = me+n_send_process;
+                t_info[i].my_pair = me+1;
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -267,103 +262,11 @@ int Test_Multithreaded(void){
         MPI_Barrier(MPI_COMM_WORLD);
 
         if(me == 0)
-            printf("%d\t%d\t%d\t%d\t\t%lf\tP\n",n_send_process, x_send_thread,
-                                            m_recv_process, y_recv_thread,
+            printf("%d\t%d\t%d\t\t%lf\n",n_send_process, x_send_thread,
+                                            msg_size,
                                             (double)((size/2)*iter_num*window_size*num_threads/( MPI_Wtime() - g_start)));
         pthread_barrier_destroy(&barrier);
         return 0;
 }
 
-void Test_Singlethreaded(void){
-
-        int i,j,k;
-        double start,total_time;
-        buffer = (char*)malloc(msg_size);
-
-        MPI_Request *request;
-        MPI_Status *status;
-
-        if (i_am_sender){
-
-           /* Warm up routine, this is the same as the real test but shorter. */
-           /* "And that's what I said." */
-           request = (MPI_Request*)malloc(sizeof(MPI_Request)*window_size*m_recv_process);
-           status = (MPI_Status*)malloc(sizeof(MPI_Status)*window_size*m_recv_process);
-           for(i=0;i<warmup_num;i++){
-                for(k=0; k < m_recv_process; k++){
-                    for(j=0;j<window_size;j++){
-                        MPI_Isend(&buffer, msg_size, MPI_BYTE, n_send_process+k, me, MPI_COMM_WORLD, &request[k*window_size+j]);
-                    }
-                }
-                MPI_Waitall(window_size*m_recv_process, request, status);
-           }
-
-           /* Sync everyone, we are starting.*/
-           /* We are posting bunch of sends to each receiver. */
-           MPI_Barrier(MPI_COMM_WORLD);
-           start = MPI_Wtime();
-
-           for(i=0;i<iter_num;i++){
-                for(k=0; k < m_recv_process; k++){
-                    for(j=0;j<window_size;j++){
-                        MPI_Isend(&buffer, msg_size, MPI_BYTE, n_send_process+k, me, MPI_COMM_WORLD, &request[k*window_size+j]);
-                    }
-                }
-                MPI_Waitall(window_size*m_recv_process, request, status);
-           }
-
-           /* Get result. */
-           total_time = MPI_Wtime() - start;
-           /** printf("%d -> %lf\n",me, (double)msg_size*window_size*iter_num*m_recv_process/total_time); */
-
-        }
-        else{
-
-           /* This is the receiver side, we do everyting opposite from the sender */
-           /* Warmup routine - again it is the same as real test but shorter. */
-           request = (MPI_Request*)malloc(sizeof(MPI_Request)*window_size*n_send_process);
-           status = (MPI_Status*)malloc(sizeof(MPI_Status)*window_size*n_send_process);
-
-           for(i=0;i<warmup_num;i++){
-                for(k=0; k < n_send_process; k++){
-                    for(j=0;j<window_size;j++){
-                        MPI_Irecv(&buffer, msg_size, MPI_BYTE, k, k, MPI_COMM_WORLD, &request[k*window_size+j]);
-                    }
-                }
-                MPI_Waitall(window_size*n_send_process, request, status);
-           }
-
-           /* Sync everyone and start the test. */
-           MPI_Barrier(MPI_COMM_WORLD);
-           start = MPI_Wtime();
-
-           for(i=0;i<iter_num;i++){
-                for(k=0; k < n_send_process; k++){
-                    for(j=0;j<window_size;j++){
-                        MPI_Irecv(&buffer, msg_size, MPI_BYTE, k, k, MPI_COMM_WORLD, &request[k*window_size+j]);
-                    }
-                }
-                MPI_Waitall(window_size*n_send_process, request, status);
-           }
-
-           /* Get result. */
-           total_time = MPI_Wtime() - start;
-           /** printf("%d -> %lf\n",me, (double)msg_size*window_size*iter_num/total_time); */
-
-        }
-
-        /* Make sure everyone is here before we take the time for aggregated performance. */
-        MPI_Barrier(MPI_COMM_WORLD);
-
-        /* Show the result. I picked rank 0 out of ease of coding. */
-        if(me == 0){
-            printf("Aggregated msg rate : %lf\n",(double)msg_size *
-                                                            window_size *
-                                                            iter_num*n_send_process *
-                                                            m_recv_process /
-                                                            (MPI_Wtime()-start));
-            printf("total time = %lf\n",MPI_Wtime()-start);
-        }
-
-}
 
