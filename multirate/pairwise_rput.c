@@ -17,6 +17,9 @@ int i_am_sender;
 int pair_mode = 0;
 char *buffer;
 double g_start,g_end;
+char *local_buffer,*shared_buffer;
+
+MPI_Win win;
 
 static pthread_barrier_t barrier;
 
@@ -122,9 +125,8 @@ int main(int argc,char **argv){
         n_send_process = m_recv_process = size/2;
         i_am_sender = 1 - (me % 2);
 
-        /** if(me == 0 && thread_level == MPI_THREAD_MULTIPLE){ */
-        /**     printf("=================# MPI_THREAD_MULTIPLE mode #===================\n"); */
-        /** } */
+        local_buffer = (char*)malloc(sizeof(char)*msg_size);
+
 #ifdef GDB
         printf("Rank %d : PID %d\n",me,getpid());
         printf("Waiting for gdb attach.\n");
@@ -134,37 +136,33 @@ int main(int argc,char **argv){
         while(!gdb){
             sleep(1);
         }
-
 #endif
 
         /* Process the arguments. */
-        process_args(argc,argv);
-
+       process_args(argc,argv);
        perform_test();
-
        MPI_Finalize();
 
 }
 
 void *thread_work(void *info){
 
-        char *buffer;
         int i,j,k,iteration;
 
         thread_info *t_info = (thread_info*) info;
         int tid = t_info->id;
-
-
-        buffer = (char*) malloc(msg_size);
+        MPI_Status *status;
+        MPI_Request *requests;
 
         pthread_barrier_wait(&barrier);
+        MPI_Win_fence(0, win);
         int flag;
         if(i_am_sender){
-        thread_info *t_info = (thread_info*) info;
-        int tid = t_info->id;
+            thread_info *t_info = (thread_info*) info;
+            int tid = t_info->id;
             int total_request = window_size;
-            MPI_Request request[ total_request ];
-            MPI_Status status [ total_request ];
+            requests = (MPI_Request*)malloc(sizeof(MPI_Request)*total_request);
+            status = (MPI_Status*)malloc(sizeof(MPI_Status)*total_request);
 
             for(iteration = 0; iteration < iter_num + warmup_num; iteration++){
 
@@ -175,32 +173,19 @@ void *thread_work(void *info){
                 }
 
                 for(k=0;k<window_size;k++){
-                    MPI_Isend(buffer, msg_size, MPI_BYTE, t_info->my_pair, k, t_info->comm , &request[k]);
+                    MPI_Rput(local_buffer, msg_size, MPI_CHAR, t_info->my_pair, 0, msg_size, MPI_CHAR, win, &requests[k]);
                 }
-                MPI_Waitall(total_request, request, status);
-                MPI_Recv(buffer, 1, MPI_BYTE, t_info->my_pair, 1, MPI_COMM_WORLD, &status[0]);
+                //MPI_Waitall(window_size, requests, status);
+                for(k=0;k<total_request;k++)
+                    MPI_Request_free(&requests[k]);
+                MPI_Win_fence(0, win);
             }
         }
         else{
-
-            int total_request = window_size;
-            MPI_Request request[ total_request ];
-            MPI_Status status [ total_request ];
-
             for(iteration = 0; iteration < iter_num + warmup_num; iteration++){
-                /* Basically we start taking time after some number of runs. */
-                if(iteration == warmup_num){
-                    pthread_barrier_wait(&barrier);
-                }
-
-                /* post irecv to each reciever thread on each reciever. */
-                for(k=0;k<window_size;k++){
-                        MPI_Irecv(buffer, msg_size, MPI_BYTE, t_info->my_pair, k, t_info->comm , &request[k]);
-                }
-                MPI_Waitall(total_request, request, status);
-                MPI_Send(buffer, 1, MPI_BYTE, t_info->my_pair, 1, MPI_COMM_WORLD);
-
+                MPI_Win_fence(0, win);
             }
+
         }
 
 }
@@ -222,14 +207,16 @@ int perform_test(void){
                 printf("number of send and recv threads should be the same.\n");
                 return 0;
             }
-
-
         }
 
         id = (pthread_t*) malloc(sizeof(pthread_t) * num_threads);
         t_info = (thread_info*) malloc (sizeof(thread_info) * num_threads);
         pthread_barrier_init(&barrier, NULL, num_threads);
 
+
+        local_buffer = (char*)malloc(sizeof(char)*msg_size);
+        shared_buffer = (char*)malloc(sizeof(char)*msg_size);
+        MPI_Win_create(shared_buffer, msg_size, sizeof(char), MPI_INFO_NULL, MPI_COMM_WORLD, &win);
 
         for(i=0;i<num_threads;i++){
             t_info[i].id = i;
@@ -251,6 +238,7 @@ int perform_test(void){
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Win_free(&win);
 
         if(me == 0)
             printf("%d\t%d\t%d\t%d\t\t%lf\n",n_send_process, x_send_thread,iter_num/100,

@@ -13,7 +13,7 @@ def run_command(command):
 
 
 size = 1024;
-loop = 1000;
+loop = 100;
 host = "d16"
 filename = "intel_"+host+"_ib_"+str(size)+"byte_"+str(loop)
 output = " | tee -a " + filename
@@ -51,6 +51,6 @@ output = " | tee -a " + filename
 
 for i in range(1,11):
     for iteration in range(1,5):
-        os.system("mpirun -np 2 -genv I_MPI_PIN_DOMAIN=socket -ppn 1 -host d16,d17 -genv I_MPI_FABRICS=ofi ./pairwise -s "+str(size)+"  -x "+ str(i) +" -y " +str(i) + " -n 1 -m 1 -i "+str(loop)+ " "+ output)
+        os.system("mpirun -np 2 -genv I_MPI_PIN_DOMAIN=socket -ppn 1 -host arc06,arc07 -genv I_MPI_FABRICS=ofi ./pairwise -s "+str(size)+" -t " + str(i) + " -i "+str(loop)+ " "+ output)
     print "\n"
     os.system("echo \"\" >> "+filename)
