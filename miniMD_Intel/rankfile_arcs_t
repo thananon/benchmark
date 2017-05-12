@@ -1,0 +1,11 @@
+rank 0=arc00 slot=1:9
+rank 1=arc01 slot=1:9
+
+rank 2=arc06 slot=1:1
+rank 3=arc07 slot=1:1
+
+rank 4=arc06 slot=1:2
+rank 5=arc07 slot=1:2
+
+rank 6=arc06 slot=1:3
+rank 7=arc07 slot=1:3

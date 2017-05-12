@@ -1,0 +1,85 @@
+/* ----------------------------------------------------------------------
+   miniMD is a simple, parallel molecular dynamics (MD) code.   miniMD is
+   an MD microapplication in the Mantevo project at Sandia National
+   Laboratories ( http://www.mantevo.org ). The primary
+   authors of miniMD are Steve Plimpton, Paul Crozier (pscrozi@sandia.gov)
+   and Christian Trott (crtrott@sandia.gov).
+   
+   This is the modified version by Intel optimized for MIC Architecture.
+   Although most of the optimizations are generic for IA.
+
+   The primary contributors from Intel Corporation are:
+
+   Karthik Raman(karthik.raman@intel.com)
+   Ashish Jha (ashish.jha@intel.com)
+   Kiran Pamnany (kiran.pamnany@intel.com)
+
+/* ----------------------------------------------------------------------
+
+Compile Instructions 
+--------------------
+
+1) Intel Xeon Phi coprocessor - KNC
+
+==To remove all output files, type:
+
+	make clean_intelMIC
+
+==To build (Best Compiler generated code) 
+	**Double Precision** (Default)
+
+	make intelMIC KNC=yes RED_PREC=yes GSUNROLL=yes
+
+	**Single Precision**
+
+	make intelMIC KNC=yes RED_PREC=yes GSUNROLL=yes SP=yes
+
+==To build (w/ intrinsics) -- intrinsics available only in Double Precision 
+
+	**Force Compute Intrinsics**
+
+	make intelMIC KNC=yes RED_PREC=yes FORCE_SWGS=yes PAD4=yes
+
+	**Neigh Build Intrinsics**
+
+	make intelMIC KNC=yes RED_PREC=yes NEIGH_SWGS=yes PAD4=yes
+
+	**Force Compute + Neigh Build Intrinsics**
+
+	make intelMIC KNC=yes RED_PREC=yes FORCE_SWGS=yes NEIGH_SWGS=yes PAD4=yes
+	
+	NOTE: The force intrinsics are only available for Lennard Jones runs, 
+	and they do have epsilon and sigma hardcoded to 1.0. Thus changing those 
+	settings in the input script will have no effect.
+
+2) Intel Xeon 
+==To remove all output files, type:
+	
+	make clean_intel64
+
+==To build
+	
+	make intel64 AVX=yes RED_PREC=yes SIMD=yes
+
+
+Run Instructions 
+----------------
+
+1) Intel Xeon Phi coprocessor - Native 
+
+	864K atoms,Full neighbor list
+
+	mpiexec -n 1 -env KMP_AFFINITY balanced ./miniMD_intelMIC -n 100 -s 60 -t 240 --half_neigh 0
+
+
+2) Intel Xeon
+
+	864K atoms,Full neighbor list
+
+	mpiexec -n 16 ./miniMD_intel64 -n 100 -s 60 -t 2 --half_neigh 0
+
+
+
+For Details on each knob run "./miniMD_intelMIC --help" or "./miniMD_intel64 --help"
+
+

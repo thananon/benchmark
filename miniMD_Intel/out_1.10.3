@@ -1,0 +1,487 @@
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=0 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 0
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 0 on node arc06 exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=1 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 1
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802245.050
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 1 10 500000 1.446558 1.404696 0.000000 0.015920 0.025942 3456480.832858 1728240.416429 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=2 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 2
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802252.813
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 2 10 500000 1.270258 1.242604 0.000000 0.011477 0.016177 3936208.235211 984052.058803 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=3 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 3
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802260.244
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 3 10 500000 0.857111 0.839474 0.000000 0.006552 0.011085 5833550.147013 972258.357836 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=4 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 4
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802267.185
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 4 10 500000 0.651175 0.634884 0.000000 0.007601 0.008690 7678427.457982 959803.432248 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=5 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 5
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802273.899
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 5 10 500000 0.527446 0.512668 0.000000 0.007456 0.007322 9479643.411248 947964.341125 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=6 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 6
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802280.431
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 6 10 500000 0.445548 0.430049 0.000000 0.008500 0.006999 11222135.442389 935177.953532 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=7 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 7
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802286.894
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 7 10 500000 0.556837 0.517994 0.000000 0.031057 0.007786 8979288.374199 641377.741014 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=8 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 8
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802293.403
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 8 10 500000 0.529738 0.491641 0.000000 0.031584 0.006513 9438628.153890 589914.259618 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=9 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 9
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802299.901
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 9 10 500000 0.476702 0.450361 0.000000 0.018760 0.007581 10488733.002689 582707.389038 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
+ 
+running miniMD test: exe=./miniMD_openmpi np=2 nt=10 size=50 nsteps=10 neighlist=1 ghostcomm=0 input=lj
+# Create System:
+# Done .... 
+# miniMD-Intel 1.2 (MPI+OpenMP) output ...
+# Run Settings: 
+	# MPI processes: 2
+	# OpenMP threads: 10
+	# Inputfile: in.lj.miniMD
+	# Datafile: None
+# Physics Settings: 
+	# ForceStyle: LJ
+	# Force Parameters: 1.00 1.00
+	# Units: LJ
+	# Atoms: 500000
+	# System size: 83.98 83.98 83.98 (unit cells: 50 50 50)
+	# Density: 0.844200
+	# Force cutoff: 2.500000
+	# Timestep size: 0.005000
+# Technical Settings: 
+	# Neigh cutoff: 2.800000
+	# Half neighborlists: 1
+	# Neighbor bins: 41 41 41
+	# Neighbor frequency: 20
+	# Sorting frequency: 20
+	# Thermo frequency: 100
+	# Ghost Newton: 0
+	# Use intrinsics: 0
+	# Do safe exchange: 0
+	# Size of float: 8
+
+# Starting dynamics ...
+# Timestep T U P Time
+0 1.440000e+00 -6.773368e+00 -5.019672e+00  0.000
+10 1.135410e+00 -6.315145e+00 -2.759009e+00 1802306.323
+
+
+# Performance Summary:
+# MPI_proc OMP_threads nsteps natoms t_total t_force t_neigh t_comm t_other performance perf/thread grep_string t_extra
+2 10 10 500000 0.446156 0.423880 0.000000 0.011834 0.010442 11206842.449224 560342.122461 PERF_SUMMARY 0.000000
+
+
+Testfile: 
+FAILED
+
