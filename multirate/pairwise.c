@@ -4,7 +4,7 @@
 #include<unistd.h>
 #include<assert.h>
 
-int warmup_num = 0;
+int warmup_num = 10;
 int window_size = 256;
 int msg_size = 1024;
 int iter_num = 1;

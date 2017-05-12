@@ -1,4 +1,4 @@
-CFLAGS =
+CFLAGS = -O3
 MPICC = mpicc
 
 
