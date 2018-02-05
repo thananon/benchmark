@@ -11,7 +11,7 @@ int iter_num = 1;
 int want_multithread = 1;
 int me;
 int size;
-int n_send_process, m_recv_process;
+int n_send_process=1, m_recv_process=1;
 int x_send_thread=1,y_recv_thread=1;
 int i_am_sender;
 int num_comm;
@@ -164,6 +164,11 @@ void *thread_work(void *info){
                         g_start = MPI_Wtime();
                 }
 
+                if(tid ==0)
+                    MPI_Recv(buffer, 1, MPI_BYTE, n_send_process, 3, MPI_COMM_WORLD, &status[0]);
+
+                pthread_barrier_wait(&barrier);
+
                 /* post isend to each reciever thread on each reciever. */
                 for(i=0;i<m_recv_process;i++){
                     for(j=0;j<y_recv_thread;j++){
@@ -206,6 +211,12 @@ void *thread_work(void *info){
                         }
                     }
                 }
+                // pre-post message
+                pthread_barrier_wait(&barrier);
+                // ping sender now that we are ready;
+                if(tid ==0)
+                    MPI_Send(buffer, 1, MPI_BYTE, 0, 3, MPI_COMM_WORLD);
+
                 MPI_Waitall(total_request, request, status);
 
                 /* We have to send something back to tell that we are done recving. */

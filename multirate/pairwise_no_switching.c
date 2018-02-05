@@ -1,15 +1,11 @@
-#define _GNU_SOURCE
-
 #include<stdio.h>
 #include<mpi.h>
 #include<stdlib.h>
 #include<unistd.h>
 #include<assert.h>
 #include<time.h>
-#include<pthread.h>
-#include<sched.h>
 
-int warmup_num = 10;
+int warmup_num = 1;
 int window_size = 256;
 int msg_size = 1024;
 int iter_num = 100;
@@ -22,8 +18,6 @@ int i_am_sender;
 int pair_mode = 0;
 char *buffer;
 double g_start,g_end;
-struct timespec start_t, stop_t;
-double elapsed = 0;
 
 struct timespec start, end, sum;
 
@@ -155,6 +149,20 @@ int main(int argc,char **argv){
 
 }
 
+void *waiting_thread(void *info)
+{
+
+    MPI_Status status;
+    char *buffer;
+    buffer = calloc(1, msg_size);
+
+    printf("waiting thread posting blocking recv\n");
+    MPI_Recv(buffer, 1, MPI_BYTE, 0, 3, MPI_COMM_WORLD, &status);
+
+
+
+}
+
 void *thread_work(void *info){
 
         char *buffer;
@@ -163,11 +171,6 @@ void *thread_work(void *info){
         thread_info *t_info = (thread_info*) info;
         int tid = t_info->id;
 
-        /** pthread_t my_handle = pthread_self(); */
-        /** cpu_set_t cpuset; */
-        /** CPU_ZERO(&cpuset); */
-        /** CPU_SET(tid, &cpuset); */
-        /** int ret = pthread_setaffinity_np(my_handle, sizeof(cpu_set_t), &cpuset); */
 
         buffer = (char*) malloc(msg_size);
 
@@ -186,19 +189,20 @@ void *thread_work(void *info){
                 if(iteration == warmup_num){
                     pthread_barrier_wait(&barrier);
                     if(tid ==0 && me ==0) g_start = MPI_Wtime();
-               }
+                }
 
                 pthread_barrier_wait(&barrier);
-                //MPI_Barrier(t_info->comm);
+                MPI_Barrier(t_info->comm);
                 MPI_Recv(buffer, 1, MPI_BYTE, t_info->my_pair, 2, MPI_COMM_WORLD, &status[0]);
 
                 for(k=0;k<window_size;k++){
-                    MPI_Isend(buffer, msg_size, MPI_BYTE, t_info->my_pair, 1, t_info->comm , &request[k]);
+                    MPI_Isend(buffer, msg_size, MPI_BYTE, t_info->my_pair, k, t_info->comm , &request[k]);
                 }
                 MPI_Waitall(total_request, request, status);
                 MPI_Recv(buffer, 1, MPI_BYTE, t_info->my_pair, 2, MPI_COMM_WORLD, &status[0]);
-
             }
+            if(tid == 0)
+                MPI_Send(buffer, 1, MPI_BYTE, 1, 3, MPI_COMM_WORLD);
         }
         else{
 
@@ -214,10 +218,10 @@ void *thread_work(void *info){
 
                 /* post irecv to each reciever thread on each reciever. */
                 for(k=0;k<window_size;k++){
-                        MPI_Irecv(buffer, msg_size, MPI_BYTE, t_info->my_pair, 1, t_info->comm , &request[k]);
+                        MPI_Irecv(buffer, msg_size, MPI_BYTE, t_info->my_pair, k, t_info->comm , &request[k]);
                 }
                 pthread_barrier_wait(&barrier);
-                //MPI_Barrier(t_info->comm);
+                MPI_Barrier(t_info->comm);
                 MPI_Send(buffer, 1, MPI_BYTE, t_info->my_pair, 2, MPI_COMM_WORLD);
 
                 MPI_Waitall(total_request, request, status);
@@ -241,8 +245,9 @@ int perform_test(void){
         /* Spawn the threads */
         if(i_am_sender)
             num_threads = x_send_thread;
-        else
+        else{
             num_threads = y_recv_thread;
+        }
 
         if(pair_mode || 1){
             if( x_send_thread != y_recv_thread ){
@@ -257,6 +262,9 @@ int perform_test(void){
         t_info = (thread_info*) malloc (sizeof(thread_info) * num_threads);
         pthread_barrier_init(&barrier, NULL, num_threads);
 
+        pthread_t wait_thread;
+        if(!i_am_sender)
+            pthread_create(&wait_thread, NULL, waiting_thread, NULL);
 
         for(i=0;i<num_threads;i++){
             t_info[i].id = i;
@@ -278,17 +286,19 @@ int perform_test(void){
             pthread_join(id[i], NULL);
         }
 
+        if(!i_am_sender)
+            pthread_join(wait_thread, NULL);
+
 
 
         MPI_Barrier(MPI_COMM_WORLD);
-        if (me == 0) {
+        if (me == 0)
             g_end = MPI_Wtime();
-        }
 
         if(me == 0)
             printf("%d\t%d\t%d\t%d\t\t%lf\t%lf sec\n",n_send_process, x_send_thread,iter_num/100,
                                             msg_size,
-                                            (double)((size/2)*iter_num*window_size*num_threads/(g_end - g_start)),
+                                            (double)((size/2)*iter_num*window_size*num_threads/( g_end - g_start)),
                                             g_end - g_start);
         else {
             /** double usec; */
