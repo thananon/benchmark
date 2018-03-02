@@ -9,11 +9,13 @@
 #include<pthread.h>
 #include<sched.h>
 
+int gdb_mode = 0;
 int warmup_num = 10;
 int window_size = 256;
 int msg_size = 1024;
 int iter_num = 100;
 int want_multithread = 1;
+int separated_comm = 0;
 int me;
 int size;
 int n_send_process = 1, m_recv_process = 1;
@@ -35,10 +37,10 @@ void displayHelp(){
     printf("In case of multiple process, please map the process by node. ie: even ranks are sender, odd ranks are receivers.\n");
     printf("Usage : ./pairwise [options]\n");
     printf("-s [n]       : message size of n bytes to send in the test.\n");
-    printf("-p [n]       : number of process pairs in the test.\n");
     printf("-t [n]       : number of thread pairs in the test. \n");
     printf("-w [n]       : window size, number of posted message per iteration.\n");
     printf("-i [n]       : number of iterations.\n");
+    printf("-c           : separate communicator per thread pair.\n");
     printf("-h           : display this help message.\n");
     exit(0);
 }
@@ -68,8 +70,14 @@ void preprocess_args(int argc, char **argv){
 void process_args(int argc, char **argv){
 
     int c;
-    while((c = getopt(argc,argv, "s:i:w:D:t:hw:")) != -1){
+    while((c = getopt(argc,argv, "s:i:w:D:t:hw:gc")) != -1){
         switch (c){
+            case 'c':
+                separated_comm = 1;
+                break;
+            case 'g':
+                gdb_mode = 1;
+                break;
             case 's':
                 msg_size = atoi(optarg);
                 break;
@@ -105,7 +113,6 @@ int main(int argc,char **argv){
         /* Process the arguments. */
         preprocess_args(argc, argv);
         int thread_level;
-
         /* Initialize MPI according to the user's desire.*/
         if(want_multithread){
             MPI_Init_thread(&argc,&argv, MPI_THREAD_MULTIPLE, &thread_level);
@@ -131,23 +138,19 @@ int main(int argc,char **argv){
         n_send_process = m_recv_process = size/2;
         i_am_sender = 1 - (me % 2);
 
-        /** if(me == 0 && thread_level == MPI_THREAD_MULTIPLE){ */
-        /**     printf("=================# MPI_THREAD_MULTIPLE mode #===================\n"); */
-        /** } */
-#ifdef GDB
-        printf("Rank %d : PID %d\n",me,getpid());
-        printf("Waiting for gdb attach.\n");
-
-        int gdb = 0;
-        if(me==1)
-        while(!gdb){
-            sleep(1);
-        }
-
-#endif
 
         /* Process the arguments. */
         process_args(argc,argv);
+
+        /* catch gdb mode. */
+        if (gdb_mode) {
+            int stall = 1;
+            printf("gdb mode on: PID = %d\n",getpid());
+            while(stall){
+                sleep(1);
+            }
+        }
+
 
        perform_test();
 
@@ -189,7 +192,7 @@ void *thread_work(void *info){
                }
 
                 pthread_barrier_wait(&barrier);
-                //MPI_Barrier(t_info->comm);
+                MPI_Barrier(t_info->comm);
                 MPI_Recv(buffer, 1, MPI_BYTE, t_info->my_pair, 2, MPI_COMM_WORLD, &status[0]);
 
                 for(k=0;k<window_size;k++){
@@ -217,7 +220,7 @@ void *thread_work(void *info){
                         MPI_Irecv(buffer, msg_size, MPI_BYTE, t_info->my_pair, 1, t_info->comm , &request[k]);
                 }
                 pthread_barrier_wait(&barrier);
-                //MPI_Barrier(t_info->comm);
+                MPI_Barrier(t_info->comm);
                 MPI_Send(buffer, 1, MPI_BYTE, t_info->my_pair, 2, MPI_COMM_WORLD);
 
                 MPI_Waitall(total_request, request, status);
@@ -262,7 +265,10 @@ int perform_test(void){
             t_info[i].id = i;
             t_info[i].my_pair = me-1;
             MPI_Comm_dup(MPI_COMM_WORLD, &t_info[i].comm);
-            //t_info[i].comm = MPI_COMM_WORLD;
+
+            if (separated_comm == 0)
+                t_info[i].comm = MPI_COMM_WORLD;
+
             if(i_am_sender)
                 t_info[i].my_pair = me+1;
         }
